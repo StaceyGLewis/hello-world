@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import confetti from 'canvas-confetti';
+import confetti from "canvas-confetti";
 
-const correctSound = new Audio("/sounds/correct.mp3");
-const wrongSound = new Audio("/sounds/wrong.mp3");
-const clickSound = new Audio("/sounds/click.mp3");
-const victorySound = new Audio("/sounds/victory.mp3");
+// Define sounds once (global scope)
+const correctSound = new Audio("/sounds/correct.wav");
+const wrongSound = new Audio("/sounds/wrong.wav");
+const clickSound = new Audio("/sounds/click.wav");
+const victorySound = new Audio("/sounds/victory.ogg");
 
 const categories = {
   Science: [
@@ -167,19 +168,15 @@ export default function GuessWhoGame() {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [message, setMessage] = useState("");
 
-  const correctSound = new Audio("/sounds/correct.mp3");
-  const wrongSound = new Audio("/sounds/wrong.mp3");
-  const clickSound = new Audio("/sounds/click.mp3");
-  const victorySound = new Audio("/sounds/victory.mp3");
-
   useEffect(() => {
-    if (showResult) {
-      confetti({ particleCount: 150, spread: 80 });
-      victorySound.play(); // Play the victory sound directly
+    if (showResult && score === questions.length) {
+      confetti({ particleCount: 200, spread: 90 });
+      victorySound.play();
     }
-}, [showResult]);
+  }, [showResult, score, questions.length]);
 
   const handleCategorySelect = (event) => {
+    clickSound.play();
     const category = event.target.value;
     setSelectedCategory(category);
     const selectedQuestions = categories[category] ? [...categories[category]] : [];
@@ -193,7 +190,7 @@ export default function GuessWhoGame() {
 
   const handleAnswerClick = (option) => {
     if (!questions[currentQuestion]) return;
-  
+
     if (option === questions[currentQuestion].answer) {
       correctSound.play();
       setScore(score + 1);
@@ -205,7 +202,7 @@ export default function GuessWhoGame() {
           setCurrentQuestion(currentQuestion + 1);
         } else {
           setShowResult(true);
-          victorySound.play(); // Play victory sound when quiz ends
+          victorySound.play();
         }
       }, 2000);
     } else {
@@ -213,12 +210,12 @@ export default function GuessWhoGame() {
       setMessage("❌ Oops! Try again.");
     }
     setSelectedAnswer(option);
-  };  
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-6">
       {!selectedCategory ? (
-        <div className="max-w-lg w-full bg-white shadow-lg rounded-lg p-8 text-center">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-lg w-full bg-white shadow-lg rounded-lg p-8 text-center">
           <h2 className="text-3xl font-bold mb-6">Choose a Category</h2>
           <p className="text-sm text-gray-600 mb-4">Win a category and collect the ⭐ or 👑!</p>
           <select
@@ -231,21 +228,22 @@ export default function GuessWhoGame() {
               <option key={category} value={category}>{category}</option>
             ))}
           </select>
-        </div>
+        </motion.div>
       ) : !showResult ? (
-        <div className="max-w-lg w-full bg-white shadow-lg rounded-lg p-8 text-center">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-lg w-full bg-white shadow-lg rounded-lg p-8 text-center">
           <h2 className="text-2xl font-bold mb-6">{selectedCategory}</h2>
           <p className="text-lg mb-6">{questions[currentQuestion]?.question || "Loading..."}</p>
           <div className="flex flex-col gap-4">
             {questions[currentQuestion]?.options.map((option, index) => (
-              <button
+              <motion.button
                 key={index}
+                whileTap={{ scale: 0.9 }}
                 className={`w-full px-6 py-3 text-white rounded-lg transition text-lg font-semibold 
                 ${selectedAnswer === option ? (option === questions[currentQuestion].answer ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600') : 'bg-gray-500 hover:bg-gray-600'}`}
                 onClick={() => handleAnswerClick(option)}
               >
                 {option}
-              </button>
+              </motion.button>
             ))}
           </div>
           {message && <p className="mt-4 text-center text-lg italic">{message}</p>}
@@ -255,25 +253,19 @@ export default function GuessWhoGame() {
           >
             Back to Categories
           </button>
-        </div>
+        </motion.div>
       ) : (
-        <div className="max-w-lg w-full bg-white shadow-lg rounded-lg p-8 text-center">
+        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="max-w-lg w-full bg-white shadow-lg rounded-lg p-8 text-center">
           <h2 className="text-3xl font-bold">Game Over!</h2>
           <p className="text-lg">Your Score: {score} / {questions.length}</p>
-          {score >= questions.length - 1 ? (
-            <p className="text-2xl mt-4">🏆 You earned a 👑!</p>
-          ) : score >= Math.floor(questions.length * 0.75) ? (
-            <p className="text-2xl mt-4">🎉 You earned a ⭐!</p>
-          ) : (
-            <p className="text-2xl mt-4">Try again to earn a prize!</p>
-          )}
+          <p className="text-2xl mt-4">{score >= questions.length - 1 ? "🏆 You earned a 👑!" : "🎉 You earned a ⭐!"}</p>
           <button
             className="mt-6 px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-lg font-semibold"
             onClick={() => setSelectedCategory(null)}
           >
             Play Again
           </button>
-        </div>
+        </motion.div>
       )}
     </div>
   );
