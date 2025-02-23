@@ -2,12 +2,18 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
 
-// Define sounds once (global scope)
-const correctSound = new Audio("/sounds/correct.wav");
-const wrongSound = new Audio("/sounds/wrong.wav");
-const clickSound = new Audio("/sounds/click.wav");
-const victorySound = new Audio("/sounds/victory.ogg");
+const correctSound = new Audio(`${process.env.PUBLIC_URL}/sounds/correct.mp3`);
+const wrongSound = new Audio(`${process.env.PUBLIC_URL}/sounds/wrong.mp3`);
+const clickSound = new Audio(`${process.env.PUBLIC_URL}/sounds/click.mp3`);
+const victorySound = new Audio(`${process.env.PUBLIC_URL}/sounds/victory.mp3`);
 
+const categoryImages = {
+  Science: "/images/Young-scientist.webp",
+  Technology: "/images/Young-Coder.webp",
+  Art: "/images/Young-Artist.webp",
+  Engineering: "/images/young-Astronaut.jpeg",
+  Mathematics: "/images/Young-mathematician.webp",
+};
 const categories = {
   Science: [
     {
@@ -168,19 +174,32 @@ export default function GuessWhoGame() {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [message, setMessage] = useState("");
 
-  useEffect(() => {
-    if (showResult && score === questions.length) {
-      confetti({ particleCount: 200, spread: 90 });
-      victorySound.play();
-    }
-  }, [showResult, score, questions.length]);
+  // Load sounds
+  const correctSound = new Audio("/sounds/correct.mp3");
+  const wrongSound = new Audio("/sounds/wrong.mp3");
+  const clickSound = new Audio("/sounds/click.mp3");
+  const victorySound = new Audio("/sounds/victory.mp3");
 
+  // Load sounds when component mounts
+  useEffect(() => {
+    correctSound.load();
+    wrongSound.load();
+    clickSound.load();
+    victorySound.load();
+  }, []);
+
+  // Function to play sounds
+  const playSound = (sound) => {
+    sound.currentTime = 0;
+    sound.play().catch((err) => console.error("Sound play error:", err));
+  };
+
+  // Handle category selection
   const handleCategorySelect = (event) => {
-    clickSound.play();
+    playSound(clickSound); // ✅ User interaction allows sound playback
     const category = event.target.value;
     setSelectedCategory(category);
-    const selectedQuestions = categories[category] ? [...categories[category]] : [];
-    setQuestions(selectedQuestions);
+    setQuestions([...categories[category]]);
     setCurrentQuestion(0);
     setScore(0);
     setShowResult(false);
@@ -188,11 +207,12 @@ export default function GuessWhoGame() {
     setMessage("");
   };
 
+  // Handle answer selection
   const handleAnswerClick = (option) => {
     if (!questions[currentQuestion]) return;
 
     if (option === questions[currentQuestion].answer) {
-      correctSound.play();
+      playSound(correctSound);
       setScore(score + 1);
       setMessage(`🎉 Correct! ${questions[currentQuestion].fact}`);
       setTimeout(() => {
@@ -202,27 +222,44 @@ export default function GuessWhoGame() {
           setCurrentQuestion(currentQuestion + 1);
         } else {
           setShowResult(true);
-          victorySound.play();
+          playSound(victorySound);
         }
-      }, 2000);
+      }, 7000);
     } else {
-      wrongSound.play();
+      playSound(wrongSound);
       setMessage("❌ Oops! Try again.");
     }
     setSelectedAnswer(option);
   };
 
+  // Confetti effect for perfect score
+  useEffect(() => {
+    if (showResult && score === questions.length) {
+      confetti({ particleCount: 200, spread: 90 });
+      playSound(victorySound);
+    }
+  }, [showResult, score, questions.length]);
+  const QuestionCard = ({ selectedCategory, questions, currentQuestion }) => (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-lg w-full bg-white shadow-lg rounded-lg p-8 text-center">
+      <h2 className="text-2xl font-bold mb-6">{selectedCategory}</h2>
+      {selectedCategory && (
+        <img
+          src={categoryImages[selectedCategory]}
+          alt={`${selectedCategory} category illustration`}
+          className="w-40 h-40 mx-auto my-4 rounded-lg shadow-md"
+        />
+      )}
+      <p className="text-lg mb-6">{questions[currentQuestion]?.question || "Loading..."}</p>
+    </motion.div>
+  );
+  
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-6">
       {!selectedCategory ? (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-lg w-full bg-white shadow-lg rounded-lg p-8 text-center">
           <h2 className="text-3xl font-bold mb-6">Choose a Category</h2>
           <p className="text-sm text-gray-600 mb-4">Win a category and collect the ⭐ or 👑!</p>
-          <select
-            className="w-full p-3 border rounded-lg text-lg"
-            onChange={handleCategorySelect}
-            defaultValue=""
-          >
+          <select className="w-full p-3 border rounded-lg text-lg" onChange={handleCategorySelect} defaultValue="">
             <option value="" disabled>Select a category</option>
             {Object.keys(categories).map((category) => (
               <option key={category} value={category}>{category}</option>
@@ -270,5 +307,3 @@ export default function GuessWhoGame() {
     </div>
   );
 }
-
-
