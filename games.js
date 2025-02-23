@@ -1,9 +1,7 @@
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-/* /index.html 200
+
 const categories = {
-  Science: [
+   Science: [
     {
       question: "I was the first woman to travel to space. Who am I?",
       options: ["Sally Ride", "Mae Jemison", "Valentina Tereshkova", "Katherine Johnson"],
@@ -176,8 +174,6 @@ const categories = {
     }
   ]
 };
-
-
 export default function GuessWhoGame() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [questions, setQuestions] = useState([]);
@@ -199,7 +195,6 @@ export default function GuessWhoGame() {
 
   const handleAnswerClick = (option) => {
     if (!questions[currentQuestion]) return;
-    
     if (option === questions[currentQuestion].answer) {
       setScore(score + 1);
       setMessage(`Correct! ${questions[currentQuestion].fact}`);
@@ -211,7 +206,7 @@ export default function GuessWhoGame() {
         } else {
           setShowResult(true);
         }
-      }, 2000);
+      }, 8000);
     } else {
       setMessage("Incorrect. Try again!");
     }
@@ -219,37 +214,45 @@ export default function GuessWhoGame() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-6">
       {!selectedCategory ? (
-        <Card className="max-w-md w-full p-6 text-center">
-          <h2 className="text-xl font-bold mb-4">Choose a Category</h2>
-          <div className="flex flex-col gap-4">
+        <div className="max-w-lg w-full bg-white shadow-lg rounded-lg p-8 text-center">
+          <h2 className="text-3xl font-bold mb-6">Choose a Category</h2>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
             {Object.keys(categories).map((category) => (
-              <Button key={category} onClick={() => handleCategorySelect(category)}>
+              <button
+                key={category}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition text-lg font-semibold"
+                onClick={() => handleCategorySelect(category)}
+              >
                 {category}
-              </Button>
+              </button>
             ))}
           </div>
-        </Card>
+        </div>
       ) : !showResult ? (
-        <Card className="max-w-md w-full p-6 text-center">
-          <h2 className="text-xl font-bold mb-4">{selectedCategory}</h2>
+        <div className="max-w-lg w-full bg-white shadow-lg rounded-lg p-8 text-center">
+          <h2 className="text-2xl font-bold mb-6">{selectedCategory}</h2>
           <p className="text-lg mb-6">{questions[currentQuestion].question}</p>
           <div className="flex flex-col gap-4">
             {questions[currentQuestion].options.map((option, index) => (
-              <Button key={index} onClick={() => handleAnswerClick(option)}>
+              <button
+                key={index}
+                className={`w-full px-6 py-3 text-white rounded-lg transition text-lg font-semibold ${selectedAnswer === option ? (option === questions[currentQuestion].answer ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600') : 'bg-gray-500 hover:bg-gray-600'}`}
+                onClick={() => handleAnswerClick(option)}
+              >
                 {option}
-              </Button>
+              </button>
             ))}
           </div>
-          {message && <p className="mt-4 text-sm italic">{message}</p>}
-        </Card>
+          {message && <p className="mt-4 text-center text-lg italic">{message}</p>}
+        </div>
       ) : (
-        <Card className="max-w-md w-full p-6 text-center">
-          <h2 className="text-xl font-bold mb-4">Game Over!</h2>
-          <p className="text-lg mb-6">Your Score: {score} / {questions.length}</p>
-          <Button onClick={() => setSelectedCategory(null)}>Play Again</Button>
-        </Card>
+        <div className="max-w-lg w-full bg-white shadow-lg rounded-lg p-8 text-center">
+          <h2 className="text-3xl font-bold">Game Over!</h2>
+          <p className="text-lg">Your Score: {score} / {questions.length}</p>
+          <button className="px-6 py-3 mt-6 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-lg font-semibold" onClick={() => setSelectedCategory(null)}>Play Again</button>
+        </div>
       )}
     </div>
   );
