@@ -1,4 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import confetti from 'canvas-confetti';
+
+const correctSound = new Audio("/sounds/correct.mp3");
+const wrongSound = new Audio("/sounds/wrong.mp3");
+const clickSound = new Audio("/sounds/click.mp3");
+const victorySound = new Audio("/sounds/victory.mp3");
 
 const categories = {
   Science: [
@@ -159,7 +166,18 @@ export default function GuessWhoGame() {
   const [showResult, setShowResult] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [message, setMessage] = useState("");
-  const [gameComplete, setGameComplete] = useState(false);
+
+  const correctSound = new Audio("/sounds/correct.mp3");
+  const wrongSound = new Audio("/sounds/wrong.mp3");
+  const clickSound = new Audio("/sounds/click.mp3");
+  const victorySound = new Audio("/sounds/victory.mp3");
+
+  useEffect(() => {
+    if (showResult) {
+      confetti({ particleCount: 150, spread: 80 });
+      victorySound.play(); // Play the victory sound directly
+    }
+}, [showResult]);
 
   const handleCategorySelect = (event) => {
     const category = event.target.value;
@@ -175,7 +193,9 @@ export default function GuessWhoGame() {
 
   const handleAnswerClick = (option) => {
     if (!questions[currentQuestion]) return;
+  
     if (option === questions[currentQuestion].answer) {
+      correctSound.play();
       setScore(score + 1);
       setMessage(`🎉 Correct! ${questions[currentQuestion].fact}`);
       setTimeout(() => {
@@ -185,13 +205,15 @@ export default function GuessWhoGame() {
           setCurrentQuestion(currentQuestion + 1);
         } else {
           setShowResult(true);
+          victorySound.play(); // Play victory sound when quiz ends
         }
-      }, 8000);
+      }, 2000);
     } else {
+      wrongSound.play();
       setMessage("❌ Oops! Try again.");
     }
     setSelectedAnswer(option);
-  };
+  };  
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-6">
